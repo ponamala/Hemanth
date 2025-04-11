@@ -1,0 +1,109 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+# 1. Data Cleaning & Preprocessing
+df = pd.read_csv(r"C:\\Users\\heman\\Downloads\\Madrid+Daily+Weather+1997-2015.csv\\Madrid Daily Weather 1997-2015.csv")
+df.columns = df.columns.str.strip()
+
+df['CET'] = pd.to_datetime(df['CET'], errors='coerce')
+df.dropna(subset=['CET'], inplace=True)
+df.fillna(df.mean(numeric_only=True), inplace=True)
+
+df['Month'] = df['CET'].dt.month
+df['Year'] = df['CET'].dt.year
+df['Day'] = df['CET'].dt.day
+
+# 2. Statistical Analysis
+print("🔹 Dataset Info:")
+print(df.info())
+
+print("\n🔹 Summary Statistics:")
+print(df.describe())
+
+print("\n🔹 Missing Values Per Column:")
+print(df.isnull().sum())
+
+print("\n🔹 Correlation Matrix:")
+print(df[['Min TemperatureC', 'Max TemperatureC', 'Mean TemperatureC']].corr())
+
+# 3. Visualization & Insights
+# Boxplot
+plt.figure(figsize=(8, 4))
+sns.boxplot(data=df[['Min TemperatureC', 'Max TemperatureC', 'Mean TemperatureC']])
+plt.title("Distribution of Temperature Readings (Boxplot)")
+plt.tight_layout()
+plt.show()
+
+# Correlation Heatmap
+plt.figure(figsize=(8, 5))
+sns.heatmap(df[['Min TemperatureC', 'Max TemperatureC', 'Mean TemperatureC']].corr(), annot=True, cmap='coolwarm')
+plt.title("Heatmap of Temperature Correlations")
+plt.tight_layout()
+plt.show()
+# Monthly Average Bar Chart
+monthly_avg = df.groupby('Month')['Mean TemperatureC'].mean()
+plt.figure(figsize=(8, 4))
+monthly_avg.plot(kind='bar', color='skyblue')
+plt.title('Average Monthly Mean Temperature (°C)')
+plt.xticks(ticks=range(12), labels=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], rotation=45)
+plt.ylabel("Mean Temperature (°C)")
+plt.tight_layout()
+plt.show()
+
+# Scatter: Min vs Max
+plt.figure(figsize=(6, 6))
+plt.scatter(df['Min TemperatureC'], df['Max TemperatureC'], alpha=0.5, color='gold')
+plt.title("Scatter Plot: Min vs Max Temperatures")
+plt.xlabel("Min Temperature (°C)")
+plt.ylabel("Max Temperature (°C)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# Pair Plot
+sns.pairplot(df[['Min TemperatureC', 'Max TemperatureC', 'Mean TemperatureC']])
+plt.suptitle("Pairwise Temperature Comparison", y=1.02)
+plt.show()
+
+# Pie Chart: Month Distribution
+month_counts = df['Month'].value_counts().sort_index()
+labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+plt.figure(figsize=(7, 7))
+plt.pie(month_counts, labels=labels, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+plt.title("Proportion of Records by Month")
+plt.tight_layout()
+plt.show()
+
+# 4. Time Series Analysis
+df.sort_values(by='CET', inplace=True)
+
+# Line chart: Temperature over time
+plt.figure(figsize=(12, 4))
+plt.plot(df['CET'], df['Mean TemperatureC'], color='orange', linewidth=0.5)
+plt.title("Daily Mean Temperature Over Time")
+plt.xlabel("Date")
+plt.ylabel("Mean Temperature (°C)")
+plt.tight_layout()
+plt.show()
+
+# 5. Predictive Modeling (Manual Linear Regression)
+X = df[['Min TemperatureC', 'Max TemperatureC']].values
+y = df['Mean TemperatureC'].values
+X_b = np.c_[np.ones((X.shape[0], 1)), X]  # Add intercept
+theta_best = np.linalg.inv(X_b.T @ X_b) @ X_b.T @ y
+y_pred = X_b @ theta_best
+mse = np.mean((y - y_pred) ** 2)
+print(f"\n📈 Manual Linear Regression MSE: {mse:.2f}")
+
+# Plot actual vs predicted
+plt.figure(figsize=(8, 4))
+plt.scatter(y, y_pred, color='purple', alpha=0.4)
+plt.title("Actual vs Predicted Mean Temperature (Linear Regression)")
+plt.xlabel("Actual Mean Temperature (°C)")
+plt.ylabel("Predicted Mean Temperature (°C)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
