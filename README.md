@@ -1,1 +1,1 @@
-Madrid Daily Weather Analysis  
+Madrid Daily Weather Analysis   
